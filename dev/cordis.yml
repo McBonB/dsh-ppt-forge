@@ -1,8 +1,9 @@
 # Overlay variant for networks where github.com over HTTPS is unreachable:
 # clone through SSH on port 443 instead (requires an authenticated SSH key).
 #
-# ppt_setup clones clean upstream checkouts under $DSH_HOME/dsh-ppt-forge/clones/;
-# generated decks always land in the session workspace.
+# ppt_setup clones clean upstream checkouts under $DSH_HOME/dsh-ppt-forge/clones/
+# (the design engine clones sparsely, skill/ only); generated decks always land
+# in the session workspace.
 #
 # Usage: launch dsh from YOUR working directory with this overlay, e.g.
 #   cd ~/my-workspace && npx @deepseek-ai/dsh web --patch /path/to/dsh-ppt-forge/dev/cordis.yml
@@ -10,3 +11,4 @@
   config:
     pptxEngineRepo: 'ssh://git@ssh.github.com:443/hugohe3/ppt-master.git'
     htmlEngineRepo: 'ssh://git@ssh.github.com:443/op7418/guizang-ppt-skill.git'
+    designEngineRepo: 'ssh://git@ssh.github.com:443/sunchaokun/PPT-Design-Skill.git'

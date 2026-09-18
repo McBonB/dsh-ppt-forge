@@ -5,12 +5,15 @@ import { isAbsolute, join, relative } from 'node:path'
  * Resolve every filesystem location the plugin manages.
  *
  * Layout under `managedDir` (default `$DSH_HOME/dsh-ppt-forge`):
- *   clones/pptx-engine/        upstream checkout (skill nested at skills/ppt-master/)
- *   clones/html-engine/        upstream checkout (SKILL.md at repo root)
- *   venv/                       python virtualenv for the engine requirements
+ *   clones/pptx-engine/     upstream checkout (skill nested at skills/ppt-master/)
+ *   clones/html-engine/     upstream checkout (SKILL.md at repo root)
+ *   clones/design-engine/   sparse upstream checkout (skill/ only; the repo is
+ *                           ~200 MB of example artifacts beyond it)
+ *   venv/                   python virtualenv for the engine requirements
  *
- * When the config names a local checkout (`localPptxEngineDir` / `localHtmlEngineDir`),
- * that checkout is used instead of a managed clone and is never written to.
+ * When the config names a local checkout (`localPptxEngineDir` /
+ * `localHtmlEngineDir` / `localDesignEngineDir`), that checkout is used
+ * instead of a managed clone and is never written to.
  *
  * @param {import('../src/types.js').PluginConfig} config
  * @returns {import('../src/types.js').PluginDirs}
@@ -24,6 +27,9 @@ export function resolveDirs(config) {
   const htmlEngineDir = config.localHtmlEngineDir !== ''
     ? config.localHtmlEngineDir
     : join(managedDir, 'clones', 'html-engine')
+  const designEngineDir = config.localDesignEngineDir !== ''
+    ? config.localDesignEngineDir
+    : join(managedDir, 'clones', 'design-engine')
   const venvDir = join(managedDir, 'venv')
   return {
     home,
@@ -32,6 +38,8 @@ export function resolveDirs(config) {
     pptxEngineSkillDir: join(pptxEngineDir, 'skills', 'ppt-master'),
     htmlEngineDir,
     htmlEngineSkillDir: htmlEngineDir,
+    designEngineDir,
+    designEngineSkillDir: join(designEngineDir, 'skill'),
     venvDir,
     venvPython: join(venvDir, 'bin', 'python'),
   }
@@ -51,15 +59,18 @@ export function skillRoots(dirs, config) {
   const roots = []
   if (config.enablePptx) roots.push({ route: 'pptx', skillDir: dirs.pptxEngineSkillDir })
   if (config.enableHtml) roots.push({ route: 'html', skillDir: dirs.htmlEngineSkillDir })
+  if (config.enableDesign) roots.push({ route: 'design', skillDir: dirs.designEngineSkillDir })
   return roots
 }
 
 /**
  * @param {import('../src/types.js').PluginConfig} config
- * @param {'pptx' | 'html'} route
+ * @param {'pptx' | 'html' | 'design'} route
  */
 export function skillName(config, route) {
-  return route === 'pptx' ? config.pptxSkillName : config.htmlSkillName
+  if (route === 'pptx') return config.pptxSkillName
+  if (route === 'html') return config.htmlSkillName
+  return config.designSkillName
 }
 
 /**

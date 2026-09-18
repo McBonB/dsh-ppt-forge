@@ -13,12 +13,15 @@ import { createValidateHtmlTool } from './tools/validate-html.js';
 /**
  * dsh-ppt-forge — free PPT generation for DeepSeek Harness.
  *
- * A thin orchestration layer over two upstream agent skills:
+ * A thin orchestration layer over three upstream agent skills:
  *   - a native-PPTX engine (upstream, MIT): the model authors slide SVGs; python scripts compile
  *     them into native editable PPTX, and a round-trip path edits existing
  *     decks byte-exactly.
  *   - an HTML-deck engine (upstream, AGPL-3.0): the model writes a single-file HTML deck
  *     in one of two locked visual systems.
+ *   - a design engine (upstream, MIT): a methodology skill (style/palette/typography
+ *     atoms, composition recipes, acceptance-gated PNG review) driving a
+ *     python-pptx authoring package for pixel-placed, fully editable decks.
  *
  * This plugin never modifies or redistributes their code. It fetches their
  * repositories verbatim, registers their SKILL.md files with dsh's skill
@@ -42,10 +45,16 @@ export const Config = Schema.object({
     .description('git remote cloned when no local checkout is configured.'),
   htmlEngineRef: Schema.string().default('')
     .description('Branch or tag for the managed HTML-deck engine clone. Empty = default branch.'),
+  designEngineRepo: Schema.string().default('https://github.com/sunchaokun/PPT-Design-Skill.git')
+    .description('git remote cloned when no local checkout is configured (sparse: only skill/ is checked out).'),
+  designEngineRef: Schema.string().default('')
+    .description('Branch or tag for the managed design engine clone. Empty = default branch.'),
   localPptxEngineDir: Schema.string().default('')
     .description('Use an existing PPTX engine checkout (absolute path) instead of a managed clone; never written to.'),
   localHtmlEngineDir: Schema.string().default('')
     .description('Use an existing HTML-deck engine checkout (absolute path) instead of a managed clone; never written to.'),
+  localDesignEngineDir: Schema.string().default('')
+    .description('Use an existing design engine checkout (absolute path) instead of a managed clone; never written to.'),
   pythonBin: Schema.string().default('python3')
     .description('Python interpreter candidate for the venv; must be >= 3.10 (auto-discovery probes common names and install locations as fallback).'),
   pipIndexUrl: Schema.string().default('')
@@ -60,10 +69,14 @@ export const Config = Schema.object({
     .description('Mount the PPTX skill and its tools.'),
   enableHtml: Schema.boolean().default(true)
     .description('Mount the HTML-deck skill and its validator tool.'),
+  enableDesign: Schema.boolean().default(true)
+    .description('Mount the design skill (style atoms, composition recipes, acceptance-gated PPTX authoring).'),
   pptxSkillName: Schema.string().default('dsh-ppt-forge-pptx')
     .description('Registered catalog name for the PPTX skill. Kebab-case; plugin-namespaced by default so it never shadows a personal skill of the same upstream name.'),
   htmlSkillName: Schema.string().default('dsh-ppt-forge-html')
     .description('Registered catalog name for the HTML-deck skill. Kebab-case; plugin-namespaced by default.'),
+  designSkillName: Schema.string().default('dsh-ppt-forge-design')
+    .description('Registered catalog name for the design skill. Kebab-case; plugin-namespaced by default.'),
 });
 
 /**
@@ -78,9 +91,13 @@ export function apply(ctx, config) {
   if (config.localHtmlEngineDir !== '') {
     assertDirectory(config.localHtmlEngineDir, 'localHtmlEngineDir', config.localHtmlEngineDir);
   }
+  if (config.localDesignEngineDir !== '') {
+    assertDirectory(join(config.localDesignEngineDir, 'skill'), 'localDesignEngineDir', config.localDesignEngineDir);
+  }
   for (const [field, value] of [
     ['pptxSkillName', config.pptxSkillName],
     ['htmlSkillName', config.htmlSkillName],
+    ['designSkillName', config.designSkillName],
   ]) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) {
       throw new Error(`dsh-ppt-forge: ${field} must be kebab-case (lowercase letters, digits, hyphens): ${JSON.stringify(value)}`);
@@ -90,12 +107,13 @@ export function apply(ctx, config) {
   const skillRegistrations = createSkillRegistrations(ctx, resolveDirs(config), config);
 
   /** @type {import('./types.js').PluginState} */
-  let state = { pptxEnginePresent: false, htmlEnginePresent: false, venvPresent: false };
+  let state = { pptxEnginePresent: false, htmlEnginePresent: false, designEnginePresent: false, venvPresent: false };
   const refreshState = async () => {
     const dirs = resolveDirs(config);
     state = {
       pptxEnginePresent: await exists(join(dirs.pptxEngineSkillDir, 'SKILL.md')),
       htmlEnginePresent: await exists(join(dirs.htmlEngineSkillDir, 'SKILL.md')),
+      designEnginePresent: await exists(join(dirs.designEngineSkillDir, 'SKILL.md')),
       venvPresent: await exists(dirs.venvPython),
     };
   };

@@ -28,9 +28,9 @@ export function createSetupTool(ctx, runtime) {
   return defineTool({
     name: 'ppt_setup',
     description:
-      'Bootstrap (or check) the dsh-ppt-forge environment: fetch the two upstream engine ' +
+      'Bootstrap (or check) the dsh-ppt-forge environment: fetch the upstream engine ' +
       'skill repositories, create the python venv, install engine requirements, and register ' +
-      'both skills. Idempotent — safe to run again. Run this first after installing dsh-ppt-forge, or ' +
+      'the skills. Idempotent — safe to run again. Run this first after installing dsh-ppt-forge, or ' +
       'after changing its config. With checkOnly=true it only reports status.',
     parameters: {
       checkOnly: {
@@ -62,9 +62,24 @@ export function createSetupTool(ctx, runtime) {
         steps.push(await runStep(`Cloning ${config.htmlEngineRepo}`,
           'git', cloneArgv(config.htmlEngineRepo, config.htmlEngineRef, dirs.htmlEngineDir)));
       }
+      if (config.localDesignEngineDir === '' && !status.design.present) {
+        // The design repo carries ~200 MB of example artifacts beyond skill/;
+        // a blob-filtered sparse clone fetches only the skill tree.
+        const argv = ['clone', '--depth', '1', '--filter', 'blob:none', '--sparse'];
+        if (config.designEngineRef !== '') argv.push('--branch', config.designEngineRef);
+        argv.push(config.designEngineRepo, dirs.designEngineDir);
+        const clone = await runStep(`Cloning ${config.designEngineRepo} (sparse)`, 'git', argv);
+        steps.push(clone);
+        if (clone.ok) {
+          steps.push(await runStep('Selecting skill/ tree (sparse-checkout)',
+            'git', ['-C', dirs.designEngineDir, 'sparse-checkout', 'set', 'skill']));
+        }
+      }
 
-      if (config.enablePptx && config.createVenv && (await pathExists(dirs.pptxEngineSkillDir))) {
-        // The PPTX engine requires Python >= 3.10; a venv created with an older
+      if ((config.enablePptx || config.enableDesign) && config.createVenv
+        && ((config.enablePptx && await pathExists(dirs.pptxEngineSkillDir))
+          || (config.enableDesign && await pathExists(dirs.designEngineSkillDir)))) {
+        // The engines require Python >= 3.10; a venv created with an older
         // interpreter (e.g. a stock macOS python3) is rebuilt, not reused.
         const pythonBin = await resolvePythonBin(config);
         let venvPythonVersion = await pythonVersion(dirs.venvPython);
@@ -85,8 +100,16 @@ export function createSetupTool(ctx, runtime) {
           }
         }
         if (await pathExists(dirs.venvPython)) {
-          steps.push(await runStep('Installing PPTX engine requirements',
-            dirs.venvPython, ['-m', 'pip', 'install', ...pipIndexArgs(config), '-r', join(dirs.pptxEngineDir, 'requirements.txt')]));
+          if (config.enablePptx && await pathExists(dirs.pptxEngineSkillDir)) {
+            steps.push(await runStep('Installing PPTX engine requirements',
+              dirs.venvPython, ['-m', 'pip', 'install', ...pipIndexArgs(config), '-r', join(dirs.pptxEngineDir, 'requirements.txt')]));
+          }
+          if (config.enableDesign && await pathExists(dirs.designEngineSkillDir)) {
+            // The design engine's authoring layer + style/palette/typography
+            // atoms live in its MIT python package.
+            steps.push(await runStep('Installing design engine package (pptx-designer)',
+              dirs.venvPython, ['-m', 'pip', 'install', ...pipIndexArgs(config), 'pptx-designer>=1.0.0b8']));
+          }
         }
       }
 
@@ -182,6 +205,11 @@ async function collectStatus(runtime) {
       mode: config.localHtmlEngineDir !== '' ? 'local-checkout' : 'managed-clone',
       present: await pathExists(join(dirs.htmlEngineDir, 'SKILL.md')),
     },
+    design: {
+      dir: dirs.designEngineDir,
+      mode: config.localDesignEngineDir !== '' ? 'local-checkout' : 'managed-sparse-clone',
+      present: await pathExists(join(dirs.designEngineSkillDir, 'SKILL.md')),
+    },
     venv: { dir: dirs.venvDir, present: await pathExists(dirs.venvPython) },
   };
 }
@@ -240,7 +268,7 @@ function capture(file, argv) {
  */
 function renderSetup(value) {
   const lines = ['dsh-ppt-forge setup'];
-  for (const key of ['pptx', 'html', 'venv']) {
+  for (const key of ['pptx', 'html', 'design', 'venv']) {
     const block = value[key];
     if (block === undefined || typeof block !== 'object') continue;
     const info = block;

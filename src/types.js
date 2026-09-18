@@ -9,8 +9,11 @@
  * @property {string} pptxEngineRef
  * @property {string} htmlEngineRepo
  * @property {string} htmlEngineRef
+ * @property {string} designEngineRepo
+ * @property {string} designEngineRef
  * @property {string} localPptxEngineDir
  * @property {string} localHtmlEngineDir
+ * @property {string} localDesignEngineDir
  * @property {string} pythonBin
  * @property {string} pipIndexUrl
  * @property {string} pipProxy
@@ -18,8 +21,10 @@
  * @property {boolean} createVenv
  * @property {boolean} enablePptx
  * @property {boolean} enableHtml
+ * @property {boolean} enableDesign
  * @property {string} pptxSkillName
  * @property {string} htmlSkillName
+ * @property {string} designSkillName
  */
 
 /**
@@ -30,6 +35,8 @@
  * @property {string} pptxEngineSkillDir
  * @property {string} htmlEngineDir
  * @property {string} htmlEngineSkillDir
+ * @property {string} designEngineDir
+ * @property {string} designEngineSkillDir
  * @property {string} venvDir
  * @property {string} venvPython
  */
@@ -39,6 +46,7 @@
  * @typedef {object} PluginState
  * @property {boolean} pptxEnginePresent
  * @property {boolean} htmlEnginePresent
+ * @property {boolean} designEnginePresent
  * @property {boolean} venvPresent
  */
 
