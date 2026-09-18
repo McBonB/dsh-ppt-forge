@@ -1,0 +1,8 @@
+# dsh-ppt-forge bundle layer.
+# Adds the dsh-ppt-forge plugin on top of any profile that stacks this bundle.
+# Users can override any field of this row from a later layer (profile patch,
+# $DSH_HOME/cordis.patch.yml, or --patch overlays); a patch replaces the whole
+# config block, so restate every key you want to keep.
+- insert:
+    - id: dsh-ppt-forge
+      name: dsh-ppt-forge

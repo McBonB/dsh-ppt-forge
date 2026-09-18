@@ -1,0 +1,51 @@
+{
+  "name": "dsh-ppt-forge",
+  "version": "0.1.0",
+  "description": "Free PPT generation for DeepSeek Harness: mounts the ppt-master (native PPTX) and guizang-ppt-skill (single-file HTML deck) agent skills and exposes setup/export/validate tools. The skills are fetched unmodified from their upstream repositories and keep their own licenses.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js"
+  },
+  "files": [
+    "src",
+    "cordis.patch.yml",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "check": "node --check src/index.js && node --check src/frontmatter.js && node --check src/paths.js && node --check src/shell.js && node --check src/skills.js && node --check src/define-tool.js && node --check src/tools/setup.js && node --check src/tools/export.js && node --check src/tools/quality.js && node --check src/tools/validate-html.js",
+    "test": "node test/frontmatter.test.mjs"
+  },
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "ppt",
+    "pptx",
+    "html-slides",
+    "presentation",
+    "agent-skill"
+  ],
+  "author": "McBonB",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/McBonB/dsh-ppt-forge.git"
+  },
+  "homepage": "https://github.com/McBonB/dsh-ppt-forge#readme",
+  "bugs": {
+    "url": "https://github.com/McBonB/dsh-ppt-forge/issues"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    }
+  },
+  "dependencies": {
+    "@deepseek-ai/schemastery": "^3.18.2"
+  },
+  "license": "MIT"
+}
