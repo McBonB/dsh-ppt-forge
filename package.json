@@ -1,6 +1,6 @@
 {
   "name": "dsh-ppt-forge",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Free PPT generation for DeepSeek Harness: mounts the ppt-master (native PPTX) and guizang-ppt-skill (single-file HTML deck) agent skills and exposes setup/export/validate tools. The skills are fetched unmodified from their upstream repositories and keep their own licenses.",
   "type": "module",
   "main": "src/index.js",
@@ -15,8 +15,8 @@
     "LICENSE"
   ],
   "scripts": {
-    "check": "node --check src/index.js && node --check src/frontmatter.js && node --check src/paths.js && node --check src/shell.js && node --check src/skills.js && node --check src/define-tool.js && node --check src/tools/setup.js && node --check src/tools/export.js && node --check src/tools/quality.js && node --check src/tools/validate-html.js",
-    "test": "node test/frontmatter.test.mjs"
+    "check": "node --check src/index.js && node --check src/frontmatter.js && node --check src/paths.js && node --check src/shell.js && node --check src/skills.js && node --check src/define-tool.js && node --check src/router-skill.js && node --check src/tools/setup.js && node --check src/tools/export.js && node --check src/tools/quality.js && node --check src/tools/validate-html.js",
+    "test": "node test/frontmatter.test.mjs && node test/router.test.mjs"
   },
   "keywords": [
     "dsh",

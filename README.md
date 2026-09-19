@@ -2,7 +2,7 @@
 
 English | [简体中文](README.zh.md)
 
-Free PPT generation for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) — one plugin, three battle-tested generation routes. The model in your dsh session does the authoring: no extra API cost beyond your normal agent usage, and no model key is added by this plugin.
+Free PPT generation for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) — one plugin, a design dialogue up front, then three battle-tested generation routes. The model in your dsh session does the authoring: no extra API cost beyond your normal agent usage, and no model key is added by this plugin.
 
 ## What you get
 
@@ -20,14 +20,18 @@ Each route's strengths:
 - **HTML deck** — two locked visual systems (serif magazine / Swiss grid), WebGL backgrounds, declarative animation recipes, speaker notes with a full presenter/audience runtime, all embedded in one self-contained HTML file.
 - **Design-led PPTX** — a curated design-atom database (84 styles × 192 palettes × 74 typography pairings ≈ 1.2M combinations) plus a theme composer that locks one resolved theme per deck; pixel-perfect Build Mode placing every element at explicit coordinates; FreeStyle fast drafts; VI mode that extracts a template's design DNA and merges new pages under protected precedence; composition recipes and a brief-driven acceptance workflow (MUST/SHOULD/NICE_TO_HAVE conditions checked against rendered slides).
 
-Catalog names are **plugin-namespaced by default** (configurable via `pptxSkillName` / `htmlSkillName` / `designSkillName`), so the plugin never shadows a personal skill you may already have under an upstream name. Each catalog entry carries an `[dsh-ppt-forge · engine: …]` tag with the upstream credit.
+**The design dialogue comes first.** The plugin also registers its own router skill (`dsh-ppt-forge`, the only content authored by this project): for every new presentation request the agent runs a format decision (edit afterwards? browser delivery? corporate template?), collects a format-agnostic design brief (audience, scenario, tone, density), and then hands off to the matching engine skill. Aesthetic tokens are deliberately not unified — each engine resolves design in its own vocabulary, so the brief stays semantic and every engine consumes it natively.
+
+Catalog names are **plugin-namespaced by default** (configurable via `pptxSkillName` / `htmlSkillName` / `designSkillName` / `routerSkillName`), so the plugin never shadows a personal skill you may already have under an upstream name. Each engine entry carries an `[dsh-ppt-forge · engine: …]` tag with the upstream credit.
 
 ## How it works
 
 ```
 your dsh profile
 └── dsh-ppt-forge (this plugin, MIT)
-    ├── skill registry: registers all upstream SKILL.md files (unmodified)
+    ├── skill registry: the plugin-authored router skill (design dialogue)
+    │   └── format decision + design brief + handoff to one engine below
+    ├── upstream SKILL.md files (unmodified)
     ├── ppt_setup          clone the skills (design route: sparse, skill/ only), create venv, pip install, refresh registration
     ├── pptx_export        wraps svg_to_pptx.py (final + --roundtrip export)
     ├── ppt_quality_check  wraps svg_quality_checker.py (--json gates)
@@ -49,7 +53,7 @@ dsh plugin --profile default add dsh-ppt-forge   # or: add github:McBonB/dsh-ppt
 Then, inside a dsh session, ask the agent to run the setup tool once (or say "run ppt_setup"):
 
 ```text
-Set up dsh-ppt-forge: run ppt_setup, then confirm all three skills are registered.
+Set up dsh-ppt-forge: run ppt_setup, then confirm the router and all three engine skills are registered.
 ```
 
 `ppt_setup` clones the skill repositories (shallow; the design route clones sparsely, fetching only `skill/`), creates `$DSH_HOME/dsh-ppt-forge/venv/`, installs engine requirements, and registers the skills. It is idempotent — run it again after config changes or upstream updates (`git -C <clone> pull` yourself, then re-run `ppt_setup` to re-register).
@@ -78,6 +82,7 @@ Override the `dsh-ppt-forge` row from any later layer (profile `cordis.patch.yml
 | `pipProxy` | '' | pip proxy: '' = inherit (incl. OS proxy), `'direct'` = disable proxying, or an explicit URL |
 | `createVenv` | `true` | Dedicated venv for engine requirements |
 | `enablePptx` / `enableHtml` / `enableDesign` | `true` | Mount each route's skill (and its tools) independently |
+| `enableRouter` / `routerSkillName` | `true` / `dsh-ppt-forge` | The plugin-authored design-dialogue router skill |
 | `pptxSkillName` / `htmlSkillName` / `designSkillName` | `dsh-ppt-forge-pptx` / `-html` / `-design` | Registered catalog names (kebab-case); rename if they collide with your own skills |
 
 ## Tools

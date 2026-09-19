@@ -77,6 +77,10 @@ export const Config = Schema.object({
     .description('Registered catalog name for the HTML-deck skill. Kebab-case; plugin-namespaced by default.'),
   designSkillName: Schema.string().default('dsh-ppt-forge-design')
     .description('Registered catalog name for the design skill. Kebab-case; plugin-namespaced by default.'),
+  enableRouter: Schema.boolean().default(true)
+    .description('Mount the plugin-authored router skill: format decision + design brief, then handoff to an engine skill.'),
+  routerSkillName: Schema.string().default('dsh-ppt-forge')
+    .description('Registered catalog name for the router skill. Kebab-case.'),
 });
 
 /**
@@ -98,6 +102,7 @@ export function apply(ctx, config) {
     ['pptxSkillName', config.pptxSkillName],
     ['htmlSkillName', config.htmlSkillName],
     ['designSkillName', config.designSkillName],
+    ['routerSkillName', config.routerSkillName],
   ]) {
     if (!/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(value)) {
       throw new Error(`dsh-ppt-forge: ${field} must be kebab-case (lowercase letters, digits, hyphens): ${JSON.stringify(value)}`);

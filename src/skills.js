@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { parseFrontmatter } from './frontmatter.js';
+import { ROUTER_SKILL } from './router-skill.js';
 import { skillName, skillRoots } from './paths.js';
 
 /**
@@ -56,6 +57,15 @@ const ENGINE_TAGS = {
 async function registerInto(ctx, dirs, config, state) {
   const registered = [];
   const pending = [];
+  if (config.enableRouter) {
+    state.disposers.push(ctx.skills.register({
+      name: config.routerSkillName,
+      description: ROUTER_SKILL.description,
+      source: 'custom',
+      content: ROUTER_SKILL.content,
+    }));
+    registered.push(config.routerSkillName);
+  }
   for (const root of skillRoots(dirs, config)) {
     const name = skillName(config, root.route);
     const file = join(root.skillDir, 'SKILL.md');

@@ -2,7 +2,7 @@
 
 [English](README.md) | 简体中文
 
-面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)(dsh)的免费 PPT 生成插件——一个插件,三条久经考验的生成路线。创作由你 dsh 会话里的模型完成:无额外模型成本,本插件也不引入任何模型密钥。
+面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)(dsh)的免费 PPT 生成插件——设计对话先行,随后三条久经考验的生成路线。创作由你 dsh 会话里的模型完成:无额外模型成本,本插件也不引入任何模型密钥。
 
 ## 你能得到什么
 
@@ -20,14 +20,18 @@
 - **HTML 演示稿** —— 两套锁定视觉体系(衬线杂志风 / 瑞士网格),WebGL 背景、声明式动效配方、带完整演讲者/观众双端运行时的讲稿系统,全部内嵌在一个自包含 HTML 文件里。
 - **设计主导 PPTX** —— 精选设计原子库(84 风格 × 192 配色 × 74 字体搭配,约 120 万种组合)+ 主题合成器(每份文稿锁定一个解析后的主题);Build 模式按显式坐标像素级放置每个元素;FreeStyle 模式快速出稿;VI 模式提取企业模板的设计 DNA 并以保护性优先级合并新页面;构图配方,以及由需求驱动的验收工作流(MUST/SHOULD/NICE_TO_HAVE 条件对照渲染结果逐条核验)。
 
-目录名默认**采用插件命名空间**(可通过 `pptxSkillName` / `htmlSkillName` / `designSkillName` 配置),不会遮蔽你已有的同名个人技能;每条目录都带 `[dsh-ppt-forge · engine: …]` 引擎署名标签。
+**设计对话先行**:插件还注册了一个自研路由技能(`dsh-ppt-forge`,本项目唯一自著内容)——对每个新的演示请求,agent 先做格式判定(交付后还要编辑吗?浏览器放映?企业模板合规?),再收集一份与格式无关的设计简报(受众、场景、调性、密度),然后移交给匹配的引擎技能。设计 token 刻意不做统一——各引擎以自己的美学词汇消化简报,语义层的简报对所有引擎原生可用。
+
+目录名默认**采用插件命名空间**(可通过 `pptxSkillName` / `htmlSkillName` / `designSkillName` / `routerSkillName` 配置),不会遮蔽你已有的同名个人技能;每条引擎目录都带 `[dsh-ppt-forge · engine: …]` 署名标签。
 
 ## 工作原理
 
 ```
 你的 dsh profile
 └── dsh-ppt-forge(本插件,MIT)
-    ├── 技能注册表: 原样注册全部上游 SKILL.md(不作修改)
+    ├── 技能注册表: 插件自研路由技能(设计对话)
+    │   └── 格式判定 + 设计简报 + 移交到下方某一引擎
+    ├── 上游 SKILL.md(原样,不作修改)
     ├── ppt_setup          克隆技能仓库(design 路线: 稀疏克隆,只取 skill/)、建 venv、pip 安装、刷新注册
     ├── pptx_export        包装 svg_to_pptx.py(终稿导出 + --roundtrip 回改导出)
     ├── ppt_quality_check  包装 svg_quality_checker.py(--json 质量门)
@@ -49,7 +53,7 @@ dsh plugin --profile default add dsh-ppt-forge   # 或: add github:McBonB/dsh-pp
 然后在 dsh 会话里让 agent 执行一次安装工具(或直接说 "run ppt_setup"):
 
 ```text
-Set up dsh-ppt-forge: run ppt_setup, then confirm all three skills are registered.
+Set up dsh-ppt-forge: run ppt_setup, then confirm the router and all three engine skills are registered.
 ```
 
 `ppt_setup` 会克隆技能仓库(浅克隆;design 路线稀疏克隆,只拉取 `skill/`),创建 `$DSH_HOME/dsh-ppt-forge/venv/`,安装引擎依赖并注册技能。它是幂等的——改配置或上游更新后(`git -C <clone> pull`)再跑一次即可重新注册。
@@ -78,6 +82,7 @@ Set up dsh-ppt-forge: run ppt_setup, then confirm all three skills are registere
 | `pipProxy` | '' | pip 代理:'' = 继承(含系统代理),`'direct'` = 禁用代理,或显式代理 URL |
 | `createVenv` | `true` | 为引擎依赖创建专用 venv |
 | `enablePptx` / `enableHtml` / `enableDesign` | `true` | 独立挂载各路线的技能(及其工具) |
+| `enableRouter` / `routerSkillName` | `true` / `dsh-ppt-forge` | 插件自研的设计对话路由技能 |
 | `pptxSkillName` / `htmlSkillName` / `designSkillName` | `dsh-ppt-forge-pptx` / `-html` / `-design` | 注册目录名(kebab-case);与你的技能撞名时可改 |
 
 ## 工具

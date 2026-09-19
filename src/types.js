@@ -25,6 +25,8 @@
  * @property {string} pptxSkillName
  * @property {string} htmlSkillName
  * @property {string} designSkillName
+ * @property {boolean} enableRouter
+ * @property {string} routerSkillName
  */
 
 /**
