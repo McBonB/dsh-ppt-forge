@@ -2,17 +2,18 @@
 
 English | [简体中文](README.zh.md)
 
-Free PPT generation for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) — one plugin, a design dialogue up front, then three battle-tested generation routes. The model in your dsh session does the authoring: no extra API cost beyond your normal agent usage, and no model key is added by this plugin.
+Free PPT generation for [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness) (dsh) — one plugin, a design dialogue up front, then four battle-tested generation routes. The model in your dsh session does the authoring: no extra API cost beyond your normal agent usage, and no model key is added by this plugin.
 
 ## What you get
 
-`dsh-ppt-forge` is a thin orchestration plugin. It mounts three mature upstream agent skills into your dsh session and wires their deterministic gates into the tool pipeline:
+`dsh-ppt-forge` is a thin orchestration plugin. It mounts four mature upstream agent skills into your dsh session and wires their deterministic gates into the tool pipeline:
 
 | Route | Registered skill | Output |
 |---|---|---|
 | **Native PPTX** — SVG→DrawingML compilation, template fill, byte-exact editing of existing decks | `dsh-ppt-forge-pptx` | `.pptx` under `<project>/exports/` |
 | **HTML deck** — single-file horizontal-swipe deck, magazine or Swiss style, presenter mode with audience sync | `dsh-ppt-forge-html` | `index.html` (runs in any browser) |
 | **Design-led PPTX** — style-atom theming, pixel-placed authoring, acceptance-gated delivery | `dsh-ppt-forge-design` | `.pptx` + reproducible build script + PDF/PNG artifacts |
+| **Presentation HTML** — classic 16:9 fixed stage, curated template design library, PPTX→HTML restyle, Playwright PDF export | `dsh-ppt-forge-slides` | single-file `index.html` (+ optional PDF) |
 
 Each route's strengths:
 
@@ -22,7 +23,7 @@ Each route's strengths:
 
 **The design dialogue comes first.** The plugin also registers its own router skill (`dsh-ppt-forge`, the only content authored by this project): for every new presentation request the agent runs a format decision (edit afterwards? browser delivery? corporate template?), collects a format-agnostic design brief (audience, scenario, tone, density), and then hands off to the matching engine skill. Aesthetic tokens are deliberately not unified — each engine resolves design in its own vocabulary, so the brief stays semantic and every engine consumes it natively.
 
-Catalog names are **plugin-namespaced by default** (configurable via `pptxSkillName` / `htmlSkillName` / `designSkillName` / `routerSkillName`), so the plugin never shadows a personal skill you may already have under an upstream name. Each engine entry carries an `[dsh-ppt-forge · engine: …]` tag with the upstream credit.
+Catalog names are **plugin-namespaced by default** (configurable via `pptxSkillName` / `htmlSkillName` / `designSkillName` / `slidesSkillName` / `routerSkillName`), so the plugin never shadows a personal skill you may already have under an upstream name. Each engine entry carries an `[dsh-ppt-forge · engine: …]` tag with the upstream credit.
 
 ## How it works
 
@@ -76,14 +77,15 @@ Override the `dsh-ppt-forge` row from any later layer (profile `cordis.patch.yml
 | `pptxEngineRepo` / `pptxEngineRef` | upstream URL / '' | Clone source for the native-PPTX route (branch or tag) |
 | `htmlEngineRepo` / `htmlEngineRef` | upstream URL / '' | Clone source for the HTML-deck route |
 | `designEngineRepo` / `designEngineRef` | upstream URL / '' | Clone source for the design route (sparse clone: only `skill/`) |
-| `localPptxEngineDir` / `localHtmlEngineDir` / `localDesignEngineDir` | '' | Offline-dev escape hatch: existing checkouts to use instead of cloning (must exist at load; never written to) |
+| `slidesEngineRepo` / `slidesEngineRef` | upstream URL / '' | Clone source for the presentation-HTML route |
+| `localPptxEngineDir` / `localHtmlEngineDir` / `localDesignEngineDir` / `localSlidesEngineDir` | '' | Offline-dev escape hatch: existing checkouts to use instead of cloning (must exist at load; never written to) |
 | `pythonBin` / `nodeBin` | `python3` / `node` | Interpreter candidates (`pythonBin` must be >= 3.10; setup auto-probes common names and install locations) |
 | `pipIndexUrl` | '' | pip `-i` index for venv installs; set when your mirror lags behind PyPI |
 | `pipProxy` | '' | pip proxy: '' = inherit (incl. OS proxy), `'direct'` = disable proxying, or an explicit URL |
 | `createVenv` | `true` | Dedicated venv for engine requirements |
-| `enablePptx` / `enableHtml` / `enableDesign` | `true` | Mount each route's skill (and its tools) independently |
+| `enablePptx` / `enableHtml` / `enableDesign` / `enableSlides` | `true` | Mount each route's skill (and its tools) independently |
 | `enableRouter` / `routerSkillName` | `true` / `dsh-ppt-forge` | The plugin-authored design-dialogue router skill |
-| `pptxSkillName` / `htmlSkillName` / `designSkillName` | `dsh-ppt-forge-pptx` / `-html` / `-design` | Registered catalog names (kebab-case); rename if they collide with your own skills |
+| `pptxSkillName` / `htmlSkillName` / `designSkillName` / `slidesSkillName` | `dsh-ppt-forge-pptx` / `-html` / `-design` / `-slides` | Registered catalog names (kebab-case); rename if they collide with your own skills |
 
 ## Tools
 
@@ -119,3 +121,4 @@ MIT — see [LICENSE](LICENSE). This plugin never modifies or redistributes upst
 - [ppt-master](https://github.com/hugohe3/ppt-master) (native-PPTX route) — MIT. It ships an attribution integrity gate that hard-fails if its LICENSE/SPONSORS/SKILL.md metadata is modified; this plugin never touches those files, so the gate always passes. Its optional PDF-import dependency (PyMuPDF) is AGPL-3.0 and only installed via upstream requirements defaults.
 - [guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill) (HTML-deck route) — AGPL-3.0. If you redistribute or modify that skill yourself, review AGPL-3.0 (including §13, network use) first.
 - [PPT-Design-Skill](https://github.com/sunchaokun/PPT-Design-Skill) (design route) and its authoring package `pptx-designer` (PyPI) — MIT.
+- [frontend-slides](https://github.com/zarazhangrui/frontend-slides) (presentation-HTML route) — MIT.

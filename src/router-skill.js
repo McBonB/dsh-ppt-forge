@@ -40,7 +40,8 @@ Route table (engine skill names are exact catalog names):
 | Editable deck from scratch, fastest solid result with template workspaces | \`dsh-ppt-forge-pptx\` (native PPTX engine) |
 | Existing deck must be edited/filled while staying byte-faithful | \`dsh-ppt-forge-pptx\` round-trip route |
 | Corporate template compliance: extract its design DNA, add protected new pages | \`dsh-ppt-forge-design\` VI mode |
-| Browser presentation, sharing, web animation, single-file delivery | \`dsh-ppt-forge-html\` (HTML deck; magazine or Swiss system) |
+| Browser presentation, sharing, web animation — mobile-style horizontal swipe, magazine/Swiss systems | \`dsh-ppt-forge-html\` (HTML deck) |
+| Browser presentation — classic 16:9 stage, curated template library, PPTX import or PDF export | \`dsh-ppt-forge-slides\` (presentation HTML skill; fixed 1920x1080 stage) |
 
 Still unsure? Ask exactly one question: "交付后还需要在 PowerPoint 里继续编辑吗?"
 (Will you keep editing it in PowerPoint afterwards?) Yes → a PPTX route; No → HTML deck.

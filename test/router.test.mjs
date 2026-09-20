@@ -5,7 +5,7 @@ import { Config } from '../src/index.js';
 // The router is the plugin's own authored surface; these are tripwires for
 // accidental edits that would break routing or handoff.
 assert.equal(ROUTER_SKILL.name, 'dsh-ppt-forge');
-for (const engine of ['dsh-ppt-forge-pptx', 'dsh-ppt-forge-html', 'dsh-ppt-forge-design']) {
+for (const engine of ['dsh-ppt-forge-pptx', 'dsh-ppt-forge-html', 'dsh-ppt-forge-design', 'dsh-ppt-forge-slides']) {
   assert.ok(ROUTER_SKILL.content.includes(engine), `router must route to ${engine}`);
 }
 assert.ok(ROUTER_SKILL.content.includes('Phase 1') && ROUTER_SKILL.content.includes('Phase 2') && ROUTER_SKILL.content.includes('Phase 3'));

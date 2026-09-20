@@ -45,6 +45,7 @@ const ENGINE_TAGS = {
   pptx: '[dsh-ppt-forge · engine: ppt-master (MIT)] ',
   html: '[dsh-ppt-forge · engine: guizang-ppt-skill (AGPL-3.0)] ',
   design: '[dsh-ppt-forge · engine: ppt-design-skill (MIT)] ',
+  slides: '[dsh-ppt-forge · engine: frontend-slides (MIT)] ',
 };
 
 /**

@@ -11,9 +11,12 @@
  * @property {string} htmlEngineRef
  * @property {string} designEngineRepo
  * @property {string} designEngineRef
+ * @property {string} slidesEngineRepo
+ * @property {string} slidesEngineRef
  * @property {string} localPptxEngineDir
  * @property {string} localHtmlEngineDir
  * @property {string} localDesignEngineDir
+ * @property {string} localSlidesEngineDir
  * @property {string} pythonBin
  * @property {string} pipIndexUrl
  * @property {string} pipProxy
@@ -22,9 +25,11 @@
  * @property {boolean} enablePptx
  * @property {boolean} enableHtml
  * @property {boolean} enableDesign
+ * @property {boolean} enableSlides
  * @property {string} pptxSkillName
  * @property {string} htmlSkillName
  * @property {string} designSkillName
+ * @property {string} slidesSkillName
  * @property {boolean} enableRouter
  * @property {string} routerSkillName
  */
@@ -39,6 +44,8 @@
  * @property {string} htmlEngineSkillDir
  * @property {string} designEngineDir
  * @property {string} designEngineSkillDir
+ * @property {string} slidesEngineDir
+ * @property {string} slidesEngineSkillDir
  * @property {string} venvDir
  * @property {string} venvPython
  */
@@ -49,6 +56,7 @@
  * @property {boolean} pptxEnginePresent
  * @property {boolean} htmlEnginePresent
  * @property {boolean} designEnginePresent
+ * @property {boolean} slidesEnginePresent
  * @property {boolean} venvPresent
  */
 

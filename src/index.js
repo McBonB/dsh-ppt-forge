@@ -13,7 +13,7 @@ import { createValidateHtmlTool } from './tools/validate-html.js';
 /**
  * dsh-ppt-forge — free PPT generation for DeepSeek Harness.
  *
- * A thin orchestration layer over three upstream agent skills:
+ * A thin orchestration layer over four upstream agent skills:
  *   - a native-PPTX engine (upstream, MIT): the model authors slide SVGs; python scripts compile
  *     them into native editable PPTX, and a round-trip path edits existing
  *     decks byte-exactly.
@@ -22,6 +22,8 @@ import { createValidateHtmlTool } from './tools/validate-html.js';
  *   - a design engine (upstream, MIT): a methodology skill (style/palette/typography
  *     atoms, composition recipes, acceptance-gated PNG review) driving a
  *     python-pptx authoring package for pixel-placed, fully editable decks.
+ *   - a slides engine (upstream, MIT): a classic 16:9 presentation skill — fixed
+ *     1920x1080 stage, curated template design library, PPTX import, PDF export.
  *
  * This plugin never modifies or redistributes their code. It fetches their
  * repositories verbatim, registers their SKILL.md files with dsh's skill
@@ -53,8 +55,14 @@ export const Config = Schema.object({
     .description('Use an existing PPTX engine checkout (absolute path) instead of a managed clone; never written to.'),
   localHtmlEngineDir: Schema.string().default('')
     .description('Use an existing HTML-deck engine checkout (absolute path) instead of a managed clone; never written to.'),
+  slidesEngineRepo: Schema.string().default('https://github.com/zarazhangrui/frontend-slides.git')
+    .description('git remote cloned when no local checkout is configured.'),
+  slidesEngineRef: Schema.string().default('')
+    .description('Branch or tag for the managed slides engine clone. Empty = default branch.'),
   localDesignEngineDir: Schema.string().default('')
     .description('Use an existing design engine checkout (absolute path) instead of a managed clone; never written to.'),
+  localSlidesEngineDir: Schema.string().default('')
+    .description('Use an existing slides engine checkout (absolute path) instead of a managed clone; never written to.'),
   pythonBin: Schema.string().default('python3')
     .description('Python interpreter candidate for the venv; must be >= 3.10 (auto-discovery probes common names and install locations as fallback).'),
   pipIndexUrl: Schema.string().default('')
@@ -77,6 +85,10 @@ export const Config = Schema.object({
     .description('Registered catalog name for the HTML-deck skill. Kebab-case; plugin-namespaced by default.'),
   designSkillName: Schema.string().default('dsh-ppt-forge-design')
     .description('Registered catalog name for the design skill. Kebab-case; plugin-namespaced by default.'),
+  enableSlides: Schema.boolean().default(true)
+    .description('Mount the classic-presentation HTML skill (fixed 16:9 stage, template design library, PPTX import).'),
+  slidesSkillName: Schema.string().default('dsh-ppt-forge-slides')
+    .description('Registered catalog name for the slides skill. Kebab-case; plugin-namespaced by default.'),
   enableRouter: Schema.boolean().default(true)
     .description('Mount the plugin-authored router skill: format decision + design brief, then handoff to an engine skill.'),
   routerSkillName: Schema.string().default('dsh-ppt-forge')
@@ -98,6 +110,9 @@ export function apply(ctx, config) {
   if (config.localDesignEngineDir !== '') {
     assertDirectory(join(config.localDesignEngineDir, 'skill'), 'localDesignEngineDir', config.localDesignEngineDir);
   }
+  if (config.localSlidesEngineDir !== '') {
+    assertDirectory(config.localSlidesEngineDir, 'localSlidesEngineDir', config.localSlidesEngineDir);
+  }
   for (const [field, value] of [
     ['pptxSkillName', config.pptxSkillName],
     ['htmlSkillName', config.htmlSkillName],
@@ -112,13 +127,14 @@ export function apply(ctx, config) {
   const skillRegistrations = createSkillRegistrations(ctx, resolveDirs(config), config);
 
   /** @type {import('./types.js').PluginState} */
-  let state = { pptxEnginePresent: false, htmlEnginePresent: false, designEnginePresent: false, venvPresent: false };
+  let state = { pptxEnginePresent: false, htmlEnginePresent: false, designEnginePresent: false, slidesEnginePresent: false, venvPresent: false };
   const refreshState = async () => {
     const dirs = resolveDirs(config);
     state = {
       pptxEnginePresent: await exists(join(dirs.pptxEngineSkillDir, 'SKILL.md')),
       htmlEnginePresent: await exists(join(dirs.htmlEngineSkillDir, 'SKILL.md')),
       designEnginePresent: await exists(join(dirs.designEngineSkillDir, 'SKILL.md')),
+      slidesEnginePresent: await exists(join(dirs.slidesEngineSkillDir, 'SKILL.md')),
       venvPresent: await exists(dirs.venvPython),
     };
   };

@@ -9,6 +9,7 @@ import { isAbsolute, join, relative } from 'node:path'
  *   clones/html-engine/     upstream checkout (SKILL.md at repo root)
  *   clones/design-engine/   sparse upstream checkout (skill/ only; the repo is
  *                           ~200 MB of example artifacts beyond it)
+ *   clones/slides-engine/   classic 16:9 presentation skill (SKILL.md at repo root)
  *   venv/                   python virtualenv for the engine requirements
  *
  * When the config names a local checkout (`localPptxEngineDir` /
@@ -30,6 +31,9 @@ export function resolveDirs(config) {
   const designEngineDir = config.localDesignEngineDir !== ''
     ? config.localDesignEngineDir
     : join(managedDir, 'clones', 'design-engine')
+  const slidesEngineDir = config.localSlidesEngineDir !== ''
+    ? config.localSlidesEngineDir
+    : join(managedDir, 'clones', 'slides-engine')
   const venvDir = join(managedDir, 'venv')
   return {
     home,
@@ -40,6 +44,8 @@ export function resolveDirs(config) {
     htmlEngineSkillDir: htmlEngineDir,
     designEngineDir,
     designEngineSkillDir: join(designEngineDir, 'skill'),
+    slidesEngineDir,
+    slidesEngineSkillDir: slidesEngineDir,
     venvDir,
     venvPython: join(venvDir, 'bin', 'python'),
   }
@@ -60,17 +66,19 @@ export function skillRoots(dirs, config) {
   if (config.enablePptx) roots.push({ route: 'pptx', skillDir: dirs.pptxEngineSkillDir })
   if (config.enableHtml) roots.push({ route: 'html', skillDir: dirs.htmlEngineSkillDir })
   if (config.enableDesign) roots.push({ route: 'design', skillDir: dirs.designEngineSkillDir })
+  if (config.enableSlides) roots.push({ route: 'slides', skillDir: dirs.slidesEngineSkillDir })
   return roots
 }
 
 /**
  * @param {import('../src/types.js').PluginConfig} config
- * @param {'pptx' | 'html' | 'design'} route
+ * @param {'pptx' | 'html' | 'design' | 'slides'} route
  */
 export function skillName(config, route) {
   if (route === 'pptx') return config.pptxSkillName
   if (route === 'html') return config.htmlSkillName
-  return config.designSkillName
+  if (route === 'design') return config.designSkillName
+  return config.slidesSkillName
 }
 
 /**

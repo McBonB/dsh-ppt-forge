@@ -76,6 +76,11 @@ export function createSetupTool(ctx, runtime) {
         }
       }
 
+      if (config.localSlidesEngineDir === '' && !status.slides.present) {
+        steps.push(await runStep(`Cloning ${config.slidesEngineRepo}`,
+          'git', cloneArgv(config.slidesEngineRepo, config.slidesEngineRef, dirs.slidesEngineDir)));
+      }
+
       if ((config.enablePptx || config.enableDesign) && config.createVenv
         && ((config.enablePptx && await pathExists(dirs.pptxEngineSkillDir))
           || (config.enableDesign && await pathExists(dirs.designEngineSkillDir)))) {
@@ -205,6 +210,11 @@ async function collectStatus(runtime) {
       mode: config.localHtmlEngineDir !== '' ? 'local-checkout' : 'managed-clone',
       present: await pathExists(join(dirs.htmlEngineDir, 'SKILL.md')),
     },
+    slides: {
+      dir: dirs.slidesEngineDir,
+      mode: config.localSlidesEngineDir !== '' ? 'local-checkout' : 'managed-clone',
+      present: await pathExists(join(dirs.slidesEngineDir, 'SKILL.md')),
+    },
     design: {
       dir: dirs.designEngineDir,
       mode: config.localDesignEngineDir !== '' ? 'local-checkout' : 'managed-sparse-clone',
@@ -268,7 +278,7 @@ function capture(file, argv) {
  */
 function renderSetup(value) {
   const lines = ['dsh-ppt-forge setup'];
-  for (const key of ['pptx', 'html', 'design', 'venv']) {
+  for (const key of ['pptx', 'html', 'slides', 'design', 'venv']) {
     const block = value[key];
     if (block === undefined || typeof block !== 'object') continue;
     const info = block;

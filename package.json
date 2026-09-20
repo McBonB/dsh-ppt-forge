@@ -1,6 +1,6 @@
 {
   "name": "dsh-ppt-forge",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Free PPT generation for DeepSeek Harness: mounts the ppt-master (native PPTX) and guizang-ppt-skill (single-file HTML deck) agent skills and exposes setup/export/validate tools. The skills are fetched unmodified from their upstream repositories and keep their own licenses.",
   "type": "module",
   "main": "src/index.js",

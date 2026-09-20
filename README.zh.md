@@ -2,17 +2,18 @@
 
 [English](README.md) | 简体中文
 
-面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)(dsh)的免费 PPT 生成插件——设计对话先行,随后三条久经考验的生成路线。创作由你 dsh 会话里的模型完成:无额外模型成本,本插件也不引入任何模型密钥。
+面向 [DeepSeek Harness](https://github.com/deepseek-ai/deepseek-harness)(dsh)的免费 PPT 生成插件——设计对话先行,随后四条久经考验的生成路线。创作由你 dsh 会话里的模型完成:无额外模型成本,本插件也不引入任何模型密钥。
 
 ## 你能得到什么
 
-`dsh-ppt-forge` 是一个薄编排层插件。它把三个成熟的开源 agent 技能挂载进你的 dsh 会话,并把它们的确定性质量门接入工具管线:
+`dsh-ppt-forge` 是一个薄编排层插件。它把四个成熟的开源 agent 技能挂载进你的 dsh 会话,并把它们的确定性质量门接入工具管线:
 
 | 路线 | 注册技能名 | 产物 |
 |---|---|---|
 | **原生 PPTX** —— SVG→DrawingML 编译、模板填充、对现有文稿字节级保真回改 | `dsh-ppt-forge-pptx` | `<project>/exports/` 下的 `.pptx` |
 | **HTML 演示稿** —— 单文件横滑网页 PPT,杂志风/瑞士风双体系,演讲者模式 + 观众屏同步 | `dsh-ppt-forge-html` | `index.html`(任意浏览器直接放映) |
 | **设计主导 PPTX** —— 风格原子主题化、像素级摆放创作、验收门交付 | `dsh-ppt-forge-design` | `.pptx` + 可复现构建脚本 + PDF/PNG 产物 |
+| **演示 HTML** —— 经典 16:9 固定舞台、精选模板设计库、PPTX→HTML 重制、Playwright 导出 PDF | `dsh-ppt-forge-slides` | 单文件 `index.html`(+ 可选 PDF) |
 
 各路线的独到之处:
 
@@ -22,7 +23,7 @@
 
 **设计对话先行**:插件还注册了一个自研路由技能(`dsh-ppt-forge`,本项目唯一自著内容)——对每个新的演示请求,agent 先做格式判定(交付后还要编辑吗?浏览器放映?企业模板合规?),再收集一份与格式无关的设计简报(受众、场景、调性、密度),然后移交给匹配的引擎技能。设计 token 刻意不做统一——各引擎以自己的美学词汇消化简报,语义层的简报对所有引擎原生可用。
 
-目录名默认**采用插件命名空间**(可通过 `pptxSkillName` / `htmlSkillName` / `designSkillName` / `routerSkillName` 配置),不会遮蔽你已有的同名个人技能;每条引擎目录都带 `[dsh-ppt-forge · engine: …]` 署名标签。
+目录名默认**采用插件命名空间**(可通过 `pptxSkillName` / `htmlSkillName` / `designSkillName` / `slidesSkillName` / `routerSkillName` 配置),不会遮蔽你已有的同名个人技能;每条引擎目录都带 `[dsh-ppt-forge · engine: …]` 署名标签。
 
 ## 工作原理
 
@@ -76,14 +77,15 @@ Set up dsh-ppt-forge: run ppt_setup, then confirm the router and all three engin
 | `pptxEngineRepo` / `pptxEngineRef` | 上游 URL / '' | 原生 PPTX 路线的克隆源(分支或标签) |
 | `htmlEngineRepo` / `htmlEngineRef` | 上游 URL / '' | HTML 演示稿路线的克隆源 |
 | `designEngineRepo` / `designEngineRef` | 上游 URL / '' | design 路线的克隆源(稀疏克隆:仅 `skill/`) |
-| `localPptxEngineDir` / `localHtmlEngineDir` / `localDesignEngineDir` | '' | 离线开发逃生口:改用已有 checkout(加载时必须存在;绝不写入) |
+| `slidesEngineRepo` / `slidesEngineRef` | 上游 URL / '' | 演示 HTML 路线的克隆源 |
+| `localPptxEngineDir` / `localHtmlEngineDir` / `localDesignEngineDir` / `localSlidesEngineDir` | '' | 离线开发逃生口:改用已有 checkout(加载时必须存在;绝不写入) |
 | `pythonBin` / `nodeBin` | `python3` / `node` | 解释器候选(`pythonBin` 须 >= 3.10;setup 会自动探测常见名称与安装位置) |
 | `pipIndexUrl` | '' | venv 安装的 pip `-i` 源;镜像滞后于 PyPI 时设置 |
 | `pipProxy` | '' | pip 代理:'' = 继承(含系统代理),`'direct'` = 禁用代理,或显式代理 URL |
 | `createVenv` | `true` | 为引擎依赖创建专用 venv |
-| `enablePptx` / `enableHtml` / `enableDesign` | `true` | 独立挂载各路线的技能(及其工具) |
+| `enablePptx` / `enableHtml` / `enableDesign` / `enableSlides` | `true` | 独立挂载各路线的技能(及其工具) |
 | `enableRouter` / `routerSkillName` | `true` / `dsh-ppt-forge` | 插件自研的设计对话路由技能 |
-| `pptxSkillName` / `htmlSkillName` / `designSkillName` | `dsh-ppt-forge-pptx` / `-html` / `-design` | 注册目录名(kebab-case);与你的技能撞名时可改 |
+| `pptxSkillName` / `htmlSkillName` / `designSkillName` / `slidesSkillName` | `dsh-ppt-forge-pptx` / `-html` / `-design` / `-slides` | 注册目录名(kebab-case);与你的技能撞名时可改 |
 
 ## 工具
 
@@ -119,3 +121,4 @@ MIT——见 [LICENSE](LICENSE)。本插件从不修改、不再分发上游技�
 - [ppt-master](https://github.com/hugohe3/ppt-master)(原生 PPTX 路线)—— MIT。它内置署名完整性门禁,其 LICENSE/SPONSORS/SKILL.md 元数据被改动即硬失败;本插件从不触碰这些文件,门禁恒通过。其可选 PDF 导入依赖(PyMuPDF)为 AGPL-3.0,仅随上游 requirements 默认项安装。
 - [guizang-ppt-skill](https://github.com/op7418/guizang-ppt-skill)(HTML 演示稿路线)—— AGPL-3.0。如你自行修改或再分发该技能,请先审阅 AGPL-3.0 义务(含第 13 条网络使用条款)。
 - [PPT-Design-Skill](https://github.com/sunchaokun/PPT-Design-Skill)(design 路线)及其创作包 `pptx-designer`(PyPI)—— MIT。
+- [frontend-slides](https://github.com/zarazhangrui/frontend-slides)(演示 HTML 路线)—— MIT。
