@@ -92,7 +92,7 @@ export function createSetupTool(ctx, runtime) {
           }
         }
         if (venvPythonVersion === null) {
-          steps.push(await runStep(`Creating python venv (${pythonBin.bin} ${pythonBin.version})`,
+          steps.push(await runStep(`Creating python venv (${pythonBin.bin} ${pythonBin.version.major}.${pythonBin.version.minor})`,
             pythonBin.bin, ['-m', 'venv', dirs.venvDir]));
           if (await pathExists(dirs.venvPython)) {
             steps.push(await runStep('Upgrading pip',
